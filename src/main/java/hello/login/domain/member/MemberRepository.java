@@ -18,7 +18,7 @@ public class MemberRepository {
         store.put(member.getId(), member);
         return member;
     }
-
+    // db 에서 key 값
     public Member findById(Long id) {
         return store.get(id);
     }
@@ -33,7 +33,7 @@ public class MemberRepository {
 //        }
 //        return Optional.empty();
 //    }
-
+    // 클라이언트의 String id
     public Optional<Member> findByLoginId(String loginId) {
         return findAll().stream()
                 .filter(m -> m.getLoginId().equals(loginId)) //조건을 만족하는 Member 만 다음값으로 넘어간다
