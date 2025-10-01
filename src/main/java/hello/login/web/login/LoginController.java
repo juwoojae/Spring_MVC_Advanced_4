@@ -41,6 +41,8 @@ public class LoginController {
         /**
          * 이렇듯 글로벌 오류는 객체 안에서 끝나지 않는 경우가 많다 (dp 에서 값을 검증한다던지)
          */
+        log.info("erros={}", bindingResult);
+
         if(loginMember == null){
             bindingResult.reject("loginFail", "아이디 또는 비밀번호가 맞지 않습니다");
             return "login/loginForm";
@@ -81,10 +83,11 @@ public class LoginController {
 
     @PostMapping("/login")
     public String loginV3(@Validated @ModelAttribute LoginForm form, BindingResult bindingResult, HttpServletRequest request){
+
+        log.info("errors={}", bindingResult);
         if (bindingResult.hasErrors()){
             return "login/loginForm"; //실패한다면 loginForm  에서 뷰로 오류넘기고 th:errors, th:errorclass
         }
-
         Member loginMember = loginService.login(form.getLoginId(), form.getPassword());
         if(loginMember == null){
             bindingResult.reject("loginFail", "아이디 또는 비밀번호가 맞지 않습니다");
