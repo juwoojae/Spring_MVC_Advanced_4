@@ -14,7 +14,7 @@ public class MemberRepository {
 
     public Member save(Member member) {
         member.setId(++sequence);
-        log.info("save: member={}", member);
+        log.info("save: member={}", member); //save 성공적
         store.put(member.getId(), member);
         return member;
     }
