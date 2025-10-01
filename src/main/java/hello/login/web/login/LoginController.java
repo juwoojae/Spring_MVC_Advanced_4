@@ -3,10 +3,12 @@ package hello.login.web.login;
 
 import hello.login.domain.login.LoginService;
 import hello.login.domain.member.Member;
+import hello.login.web.SessionConst;
 import hello.login.web.session.SessionManager;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -60,20 +62,53 @@ public class LoginController {
         return "redirect:/";  //일단 홈 화면으로
     }
 
-    @PostMapping("/login")
+    //@PostMapping("/login")
     public String loginV2(@Validated @ModelAttribute LoginForm form, BindingResult bindingResult, HttpServletResponse response){
         if (bindingResult.hasErrors()){
             return "login/loginForm"; //실패한다면 loginForm  에서 뷰로 오류넘기고 th:errors, th:errorclass
         }
 
         Member loginMember = loginService.login(form.getLoginId(), form.getPassword());
-
+        //아 이렇게 if - else 문을 사용해주지 않고 if 하나로 가독성 좋은 코드를 만들수 있구나
         if(loginMember == null){
             bindingResult.reject("loginFail", "아이디 또는 비밀번호가 맞지 않습니다");
             return "login/loginForm";
         }
         //세션 관리자를 통해 세션을 생성하고, 회원 데이터 보관
-        sessionManager.createSession(loginMember, response);
+        //sessionManager.createSession(loginMember, response);
+        return "redirect:/";  //일단 홈 화면으로
+    }
+
+    @PostMapping("/login")
+    public String loginV3(@Validated @ModelAttribute LoginForm form, BindingResult bindingResult, HttpServletRequest request){
+        if (bindingResult.hasErrors()){
+            return "login/loginForm"; //실패한다면 loginForm  에서 뷰로 오류넘기고 th:errors, th:errorclass
+        }
+
+        Member loginMember = loginService.login(form.getLoginId(), form.getPassword());
+        log.info("login? {}", loginMember);
+        if(loginMember == null){
+            bindingResult.reject("loginFail", "아이디 또는 비밀번호가 맞지 않습니다");
+            return "login/loginForm";
+        }
+
+        //로그인 세션 성공 처리
+
+        /**
+         * 세션의 create 옵션
+         * request.getSesstion(true)
+         * 세션이 있으면 기존 세션을 반환한다
+         * 세션이 없으면 새로운 세션을 생성해서 반환한다
+         * request.getSession(false)
+         * 세션이 있으면 기존 세션을 반환한다
+         * 세션이 없으면 새로운 세션을 생성하지 않는다. null 을 반환한다
+         * 디폴트가 true 이므로 파라메터 없이 그냥 생성하면 된다.
+         */
+        //세션이 있는 세션 반환, 없으면 신규 세션 생성
+        HttpSession session = request.getSession();
+        //세션에 로그인 회원 정보 보관
+        session.setAttribute(SessionConst.LOGIN_MEMBER, loginMember);
+
         return "redirect:/";  //일단 홈 화면으로
     }
 
@@ -83,9 +118,18 @@ public class LoginController {
         return "redirect:/";
     }
 
-    @PostMapping("/logout")
+    //@PostMapping("/logout")
     public String logoutV2(HttpServletRequest request) {
         sessionManager.expire(request);
+        return "redirect:/";
+    }
+
+    @PostMapping("/logout")
+    public String logoutV3(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if(session != null){
+            session.invalidate(); //세션과 세션 값 다 날리기
+        }
         return "redirect:/";
     }
 
