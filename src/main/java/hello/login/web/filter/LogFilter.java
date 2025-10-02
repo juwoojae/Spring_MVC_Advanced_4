@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 /**
@@ -30,7 +30,7 @@ public class LogFilter implements Filter {
         //ServletRequest 를 받아오는데 HttpServletRequest 의 부모이다. 다운캐스팅 해줘야한다
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         String requestURI = httpRequest.getRequestURI();
-        //HTTP 요청을 구분하기 위해 요청당 임의의 uuid 를 생성해 둔다.
+        //HTTP 요청을 구분하기 위해 요청당 임의의  를 생성해 둔다.
         String uuid = UUID.randomUUID().toString();
         try {
             log.info("REQUEST [{}][{}]", uuid, requestURI);

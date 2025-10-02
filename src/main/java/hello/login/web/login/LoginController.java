@@ -17,6 +17,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Slf4j
 @Controller
@@ -27,13 +28,13 @@ public class LoginController {
     private final SessionManager sessionManager;
 
     @GetMapping("/login")
-    public String loginForm(@ModelAttribute("loginForm") LoginForm form){
+    public String loginForm(@ModelAttribute("loginForm") LoginForm form) {
         return "login/loginForm";
     }
 
-   //@PostMapping("/login")
-    public String login(@Validated @ModelAttribute LoginForm form, BindingResult bindingResult, HttpServletResponse response){
-        if (bindingResult.hasErrors()){
+    //@PostMapping("/login")
+    public String login(@Validated @ModelAttribute LoginForm form, BindingResult bindingResult, HttpServletResponse response) {
+        if (bindingResult.hasErrors()) {
             return "login/loginForm"; //실패한다면 loginForm  에서 뷰로 오류넘기고 th:errors, th:errorclass
         }
 
@@ -43,7 +44,7 @@ public class LoginController {
          */
         log.info("erros={}", bindingResult);
 
-        if(loginMember == null){
+        if (loginMember == null) {
             bindingResult.reject("loginFail", "아이디 또는 비밀번호가 맞지 않습니다");
             return "login/loginForm";
         }
@@ -65,14 +66,14 @@ public class LoginController {
     }
 
     //@PostMapping("/login")
-    public String loginV2(@Validated @ModelAttribute LoginForm form, BindingResult bindingResult, HttpServletResponse response){
-        if (bindingResult.hasErrors()){
+    public String loginV2(@Validated @ModelAttribute LoginForm form, BindingResult bindingResult, HttpServletResponse response) {
+        if (bindingResult.hasErrors()) {
             return "login/loginForm"; //실패한다면 loginForm  에서 뷰로 오류넘기고 th:errors, th:errorclass
         }
 
         Member loginMember = loginService.login(form.getLoginId(), form.getPassword());
         //아 이렇게 if - else 문을 사용해주지 않고 if 하나로 가독성 좋은 코드를 만들수 있구나
-        if(loginMember == null){
+        if (loginMember == null) {
             bindingResult.reject("loginFail", "아이디 또는 비밀번호가 맞지 않습니다");
             return "login/loginForm";
         }
@@ -81,15 +82,15 @@ public class LoginController {
         return "redirect:/";  //일단 홈 화면으로
     }
 
-    @PostMapping("/login")
-    public String loginV3(@Validated @ModelAttribute LoginForm form, BindingResult bindingResult, HttpServletRequest request){
+    //@PostMapping("/login")
+    public String loginV3(@Validated @ModelAttribute LoginForm form, BindingResult bindingResult, HttpServletRequest request) {
 
         log.info("errors={}", bindingResult);
-        if (bindingResult.hasErrors()){
+        if (bindingResult.hasErrors()) {
             return "login/loginForm"; //실패한다면 loginForm  에서 뷰로 오류넘기고 th:errors, th:errorclass
         }
         Member loginMember = loginService.login(form.getLoginId(), form.getPassword());
-        if(loginMember == null){
+        if (loginMember == null) {
             bindingResult.reject("loginFail", "아이디 또는 비밀번호가 맞지 않습니다");
             return "login/loginForm";
         }
@@ -108,10 +109,29 @@ public class LoginController {
          */
         //세션이 있는 세션 반환, 없으면 신규 세션 생성
         HttpSession session = request.getSession();
+        //log.info("세션 생성 세션id {} ", session.getId());
         //세션에 로그인 회원 정보 보관
         session.setAttribute(SessionConst.LOGIN_MEMBER, loginMember);
 
         return "redirect:/";  //일단 홈 화면으로
+    }
+    @PostMapping("/login")
+    public String loginV4(@Validated @ModelAttribute LoginForm form, BindingResult bindingResult,
+                          @RequestParam(defaultValue = "/") String redirectURL, HttpServletRequest request) {
+
+        log.info("errors={}", bindingResult);
+        if (bindingResult.hasErrors()) {
+            return "login/loginForm"; //실패한다면 loginForm  에서 뷰로 오류넘기고 th:errors, th:errorclass
+        }
+        Member loginMember = loginService.login(form.getLoginId(), form.getPassword());
+        if (loginMember == null) {
+            bindingResult.reject("loginFail", "아이디 또는 비밀번호가 맞지 않습니다");
+            return "login/loginForm";
+        }
+        HttpSession session = request.getSession();
+        session.setAttribute(SessionConst.LOGIN_MEMBER, loginMember);
+
+        return "redirect:" + redirectURL;  //일단 홈 화면으로
     }
 
     //@PostMapping("/logout")
@@ -129,7 +149,7 @@ public class LoginController {
     @PostMapping("/logout")
     public String logoutV3(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
-        if(session != null){
+        if (session != null) {
             session.invalidate(); //세션과 세션 값 다 날리기
         }
         return "redirect:/";
