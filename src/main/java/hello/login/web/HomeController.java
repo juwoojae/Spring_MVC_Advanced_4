@@ -2,6 +2,7 @@ package hello.login.web;
 
 import hello.login.domain.member.Member;
 import hello.login.domain.member.MemberRepository;
+import hello.login.web.argumentresolver.Login;
 import hello.login.web.session.SessionManager;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -96,9 +97,20 @@ public class HomeController {
      * require = false 라면 nullpointException 이 터지면 그냥 loginMember 를 null 로 반환하고 만다.
      * SessionAttribute 는 세션객체를 생성하지는 않는다
      */
-    @GetMapping("/")
+    //@GetMapping("/")
     public String homeLoginV3Spring(
             @SessionAttribute(name = SessionConst.LOGIN_MEMBER ,required = false) Member loginMember, Model model){
+        //세션은 있는데 Member 가 세션안에 없는경우 임의로 조작해서 넣기
+        if(loginMember == null){ //쿠키를 받아온 도중에 쿠키 세션이 만료되는 경우
+            return "home";
+        }
+        //로그인 성공 (쿠키 존재)
+        model.addAttribute("member", loginMember);
+        return "loginHome";
+
+    }
+    @GetMapping("/")
+    public String homeLoginV3ArgumentResolver(@Login Member loginMember, Model model){
         //세션은 있는데 Member 가 세션안에 없는경우 임의로 조작해서 넣기
         if(loginMember == null){ //쿠키를 받아온 도중에 쿠키 세션이 만료되는 경우
             return "home";
